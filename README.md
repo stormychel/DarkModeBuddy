@@ -22,6 +22,7 @@ Below is a non-exhaustive list of Mac models that have been verified to work wit
 - iMac (Retina 5K, 27-inch, 2020)
 - iMac (27-inch, Late 2012)
 - MacBook Pro 16" (2019)
+- MacBook Pro 16" (2021)
 - MacBook Pro 13" (2019)
 - MacBook Pro 13" (2018)
 - MacBook Pro (13-inch, 2016, Four Thunderbolt 3 Ports)
