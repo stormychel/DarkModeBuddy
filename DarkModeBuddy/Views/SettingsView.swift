@@ -12,7 +12,42 @@ struct SettingsView: View {
     @EnvironmentObject var reader: DMBAmbientLightSensorReader
     @EnvironmentObject var settings: DMBSettings
 
-    private let darknessInterval: ClosedRange<Double> = 0...3000
+    private let darknessInterval: ClosedRange<Double> = 0...30000
+
+    // Slider geometry: 80% of the track covers 0...6000 (fine control over the
+    // useful indoor range), the remaining 20% covers 6000...30000 for bright
+    // rooms and direct daylight.
+    private let darknessSliderBreakpointPosition: Double = 0.8
+    private let darknessSliderBreakpointValue: Double = 6000
+
+    private func value(forSliderPosition position: Double) -> Double {
+        let bp = darknessSliderBreakpointPosition
+        let bv = darknessSliderBreakpointValue
+        let maxV = darknessInterval.upperBound
+        if position <= bp {
+            return (position / bp) * bv
+        } else {
+            return bv + ((position - bp) / (1 - bp)) * (maxV - bv)
+        }
+    }
+
+    private func sliderPosition(forValue value: Double) -> Double {
+        let bp = darknessSliderBreakpointPosition
+        let bv = darknessSliderBreakpointValue
+        let maxV = darknessInterval.upperBound
+        if value <= bv {
+            return (value / bv) * bp
+        } else {
+            return bp + ((value - bv) / (maxV - bv)) * (1 - bp)
+        }
+    }
+
+    private var darknessThresholdSliderBinding: Binding<Double> {
+        Binding(
+            get: { sliderPosition(forValue: settings.darknessThreshold) },
+            set: { settings.darknessThreshold = value(forSliderPosition: $0) }
+        )
+    }
 
     @State private var isShowingDarknessValueOutOfBoundsAlert = false
     @State private var isEditingAmbientLightLevelManually = false
@@ -49,7 +84,7 @@ struct SettingsView: View {
                     Text("Go Dark When Ambient Light Falls Below:")
                     
                     HStack(alignment: .firstTextBaseline) {
-                        Slider(value: $settings.darknessThreshold, in: darknessInterval)
+                        Slider(value: darknessThresholdSliderBinding, in: 0...1)
                             .frame(maxWidth: 300)
                         if isEditingAmbientLightLevelManually {
                             TextField("", text: $editingAmbientLightManuallyTextFieldStore, onCommit: {
