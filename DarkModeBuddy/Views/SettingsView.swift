@@ -12,13 +12,16 @@ struct SettingsView: View {
     @EnvironmentObject var reader: DMBAmbientLightSensorReader
     @EnvironmentObject var settings: DMBSettings
 
-    private let darknessInterval: ClosedRange<Double> = 0...3000
+    private let darknessInterval: ClosedRange<Double> = 0...30000
     
-    /// Finer steps at the low end, where typical indoor readings sit.
+    /// Finer steps at the low end, where typical indoor readings sit,
+    /// with coarse steps up to bright rooms and direct daylight.
     private let darknessStops: [Double] = Array(stride(from: 0.0, to: 20, by: 1))
         + Array(stride(from: 20.0, to: 100, by: 5))
         + Array(stride(from: 100.0, to: 500, by: 25))
-        + Array(stride(from: 500.0, through: 3000, by: 250))
+        + Array(stride(from: 500.0, to: 3000, by: 250))
+        + Array(stride(from: 3000.0, to: 6000, by: 500))
+        + Array(stride(from: 6000.0, through: 30000, by: 2000))
     
     private let revertMarginStops: [Double] = Array(stride(from: 1.0, to: 20, by: 1))
         + Array(stride(from: 20.0, to: 100, by: 5))
