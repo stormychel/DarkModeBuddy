@@ -30,7 +30,7 @@ public final class DMBSystemAppearanceSwitcher: ObservableObject {
     private let log = OSLog(subsystem: kDarkModeBuddyCoreSubsystemName, category: String(describing: DMBSystemAppearanceSwitcher.self))
     
     let settings: DMBSettings
-    let reader: DMBAmbientLightSensorReader
+    public let reader: DMBAmbientLightSensorReader
     
     private var cancellables = Set<AnyCancellable>()
     

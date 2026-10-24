@@ -57,6 +57,11 @@ struct SettingsView: View {
             )
             
             Toggle(
+                "Show in Menu Bar",
+                isOn: $settings.isMenuBarIconEnabled
+            )
+            
+            Toggle(
                 "Change Theme Automatically",
                 isOn: $settings.isChangeSystemAppearanceBasedOnAmbientLightEnabled
             )

@@ -38,6 +38,7 @@ public final class DMBSettings: ObservableObject {
         static let clamshellAppearance = "clamshellAppearance"
         static let clamshellRestoreAppearance = "clamshellRestoreAppearance"
         static let clamshellRestoreSwitchesAutomatically = "clamshellRestoreSwitchesAutomatically"
+        static let isMenuBarIconEnabled = "isMenuBarIconEnabled"
         
         static let defaultDarknessThreshold: Double = {
             DMBAmbientLightSensor.hardwareUsesLegacySensor() ? 20.0 : 52.0
@@ -70,7 +71,8 @@ public final class DMBSettings: ObservableObject {
             Keys.disableAppearanceChangeInClamshellMode: true,
             Keys.enableImmediateChangeOnComputerWake: true,
             Keys.extraThresholdBeforeRevertingToLightMode: Keys.defaultExtraThresholdBeforeRevertingToLightMode,
-            Keys.clamshellAppearance: ClamshellAppearance.unchanged.rawValue
+            Keys.clamshellAppearance: ClamshellAppearance.unchanged.rawValue,
+            Keys.isMenuBarIconEnabled: true
         ])
         
         self.isChangeSystemAppearanceBasedOnAmbientLightEnabled = defaults.bool(forKey: Keys.isChangeSystemAppearanceBasedOnAmbientLightEnabled)
@@ -80,6 +82,7 @@ public final class DMBSettings: ObservableObject {
         self.ambientLightSmoothingConstant = defaults.optionalDoubleValue(forKey: Keys.ambientLightSmoothingConstant) ?? Keys.defaultAmbientLightSmoothingConstant
         self.extraThresholdBeforeRevertingToLightMode = defaults.optionalDoubleValue(forKey: Keys.extraThresholdBeforeRevertingToLightMode) ?? Keys.defaultExtraThresholdBeforeRevertingToLightMode
         self.clamshellAppearance = ClamshellAppearance(rawValue: defaults.integer(forKey: Keys.clamshellAppearance)) ?? .unchanged
+        self.isMenuBarIconEnabled = defaults.bool(forKey: Keys.isMenuBarIconEnabled)
         
         if isPreviewing {
             self.isLaunchAtLoginEnabled = false
@@ -191,6 +194,16 @@ public final class DMBSettings: ObservableObject {
             defaults.set(
                 clamshellAppearance.rawValue,
                 forKey: Keys.clamshellAppearance
+            )
+        }
+    }
+    
+    /// Whether to show the menu bar icon.
+    @Published public var isMenuBarIconEnabled: Bool {
+        didSet {
+            defaults.set(
+                isMenuBarIconEnabled,
+                forKey: Keys.isMenuBarIconEnabled
             )
         }
     }

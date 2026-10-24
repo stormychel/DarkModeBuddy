@@ -39,6 +39,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         switcher.activate()
         
+        statusItemController = StatusItemController(settings: settings, reader: switcher.reader) { [weak self] in
+            self?.showSettingsWindow(nil)
+        }
+        
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
             selector: #selector(receivedShutdownNotification),
@@ -47,13 +51,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
     
+    private var statusItemController: StatusItemController?
+    
     private lazy var sensorReader = DMBAmbientLightSensorReader(frequency: .realtime)
 
     @IBAction func showSettingsWindow(_ sender: Any?) {
         NSApp.setActivationPolicy(.regular)
         
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 385, height: 540),
+            contentRect: NSRect(x: 0, y: 0, width: 385, height: 580),
             styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
             backing: .buffered, defer: false)
         window.center()
