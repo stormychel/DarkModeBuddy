@@ -59,7 +59,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        let lightItem = NSMenuItem(title: "Ambient Light: \(reader.ambientLightValue.formattedNoFractionDigits)", action: nil, keyEquivalent: "")
+        // The reader reports -1 until it has a reading.
+        let lightValue = reader.ambientLightValue < 0 ? "—" : reader.ambientLightValue.formattedNoFractionDigits
+        let lightItem = NSMenuItem(title: "Ambient Light: \(lightValue)", action: nil, keyEquivalent: "")
         lightItem.isEnabled = false
         menu.addItem(lightItem)
 
@@ -87,8 +89,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
         menu.addItem(.separator())
 
-        // Untargeted, so it reaches NSApp, whose delegate asks for confirmation.
-        menu.addItem(NSMenuItem(title: "Quit DarkModeBuddy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        // Same path as the app menu's Quit, which skips the confirmation on unsupported Macs.
+        let quitItem = NSMenuItem(title: "Quit DarkModeBuddy", action: #selector(AppDelegate.terminate(_:)), keyEquivalent: "q")
+        quitItem.target = NSApp.delegate
+        menu.addItem(quitItem)
     }
 
     private func item(_ title: String, action: Selector, keyEquivalent: String = "") -> NSMenuItem {

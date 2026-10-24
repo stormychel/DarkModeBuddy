@@ -208,15 +208,14 @@ public final class DMBSystemAppearanceSwitcher: ObservableObject {
                     switchesAutomatically: SLSGetAppearanceThemeSwitchesAutomatically()
                 )
                 
+                // Only on entry, so the user can still turn it back on while the lid is closed.
+                SLSSetAppearanceThemeSwitchesAutomatically(false)
+                
                 os_log("Entering clamshell appearance override", log: self.log, type: .debug)
             }
             
             candidateAppearance = nil
             cancelScheduledApperanceChange()
-            
-            if SLSGetAppearanceThemeSwitchesAutomatically() {
-                SLSSetAppearanceThemeSwitchesAutomatically(false)
-            }
             
             guard forcedAppearance != forcedClamshellAppearance else { return }
             forcedClamshellAppearance = forcedAppearance
@@ -225,22 +224,31 @@ public final class DMBSystemAppearanceSwitcher: ObservableObject {
             
             SLSSetAppearanceThemeLegacy(forcedAppearance.rawValue)
         } else {
-            forcedClamshellAppearance = nil
-            
-            guard let restoreState = settings.clamshellRestoreState else { return }
-            settings.clamshellRestoreState = nil
-            
-            os_log("Leaving clamshell appearance override", log: self.log, type: .debug)
-            
-            SLSSetAppearanceThemeLegacy(restoreState.appearance)
-            
-            if restoreState.switchesAutomatically {
-                SLSSetAppearanceThemeSwitchesAutomatically(true)
-            }
+            guard endClamshellOverride() else { return }
             
             // Let ambient light take over again from the current reading.
             reset()
         }
+    }
+    
+    /// Restores the theme and macOS' automatic switching saved when the clamshell override began.
+    /// Returns whether an override was active.
+    @discardableResult
+    public func endClamshellOverride() -> Bool {
+        forcedClamshellAppearance = nil
+        
+        guard let restoreState = settings.clamshellRestoreState else { return false }
+        settings.clamshellRestoreState = nil
+        
+        os_log("Leaving clamshell appearance override", log: self.log, type: .debug)
+        
+        SLSSetAppearanceThemeLegacy(restoreState.appearance)
+        
+        if restoreState.switchesAutomatically {
+            SLSSetAppearanceThemeSwitchesAutomatically(true)
+        }
+        
+        return true
     }
     
 }
