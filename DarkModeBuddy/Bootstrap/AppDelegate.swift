@@ -59,6 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         
         guard !isShowingSettingsWindow else {
+            window.deminiaturize(nil)
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
@@ -97,7 +98,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var isShowingSettingsWindow: Bool {
         guard let window = window else { return false }
-        return window.isVisible
+        return window.isVisible || window.isMiniaturized
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -161,6 +162,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate: NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
+        guard (notification.object as? NSWindow) === window else { return }
+        
         NSApp.setActivationPolicy(.accessory)
         
         window = nil
