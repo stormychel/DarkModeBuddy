@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F479410A25E5EA5A001BB982 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F479410925E5EA5A001BB982 /* AppDelegate.swift */; };
+		D0B1A00129C0000000000001 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B1A00029C0000000000001 /* StatusItemController.swift */; };
 		F479410C25E5EA5A001BB982 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F479410B25E5EA5A001BB982 /* SettingsView.swift */; };
 		F479410E25E5EA5B001BB982 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F479410D25E5EA5B001BB982 /* Assets.xcassets */; };
 		F479411125E5EA5B001BB982 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F479411025E5EA5B001BB982 /* Preview Assets.xcassets */; };
@@ -58,6 +59,7 @@
 /* Begin PBXFileReference section */
 		F479410625E5EA5A001BB982 /* DarkModeBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DarkModeBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F479410925E5EA5A001BB982 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D0B1A00029C0000000000001 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		F479410B25E5EA5A001BB982 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F479410D25E5EA5B001BB982 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F479411025E5EA5B001BB982 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				F479410925E5EA5A001BB982 /* AppDelegate.swift */,
+				D0B1A00029C0000000000001 /* StatusItemController.swift */,
 			);
 			path = Bootstrap;
 			sourceTree = "<group>";
@@ -379,6 +382,7 @@
 			files = (
 				F479410C25E5EA5A001BB982 /* SettingsView.swift in Sources */,
 				F479410A25E5EA5A001BB982 /* AppDelegate.swift in Sources */,
+				D0B1A00129C0000000000001 /* StatusItemController.swift in Sources */,
 				F479414A25E6A93C001BB982 /* UnsupportedMacView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -542,7 +546,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DarkModeBuddy/Preview Content\"";
-				DEVELOPMENT_TEAM = 8C7439RJLG;
+				DEVELOPMENT_TEAM = 4VYV5C3L3Y;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -572,7 +576,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"DarkModeBuddy/Preview Content\"";
-				DEVELOPMENT_TEAM = 8C7439RJLG;
+				DEVELOPMENT_TEAM = 4VYV5C3L3Y;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -600,7 +604,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 8C7439RJLG;
+				DEVELOPMENT_TEAM = 4VYV5C3L3Y;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 10;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -631,7 +635,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 8C7439RJLG;
+				DEVELOPMENT_TEAM = 4VYV5C3L3Y;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 10;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
