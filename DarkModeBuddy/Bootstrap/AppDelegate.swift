@@ -9,6 +9,7 @@ import Cocoa
 import SwiftUI
 import DarkModeBuddyCore
 import Sparkle
+import Combine
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -32,14 +33,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Decided once per launch: client mode never creates the switcher, so no sensor is read.
+        isClientMode = settings.isVMClientModeSelected
+        
         if shouldShowUI {
             settings.hasLaunchedAppBefore = true
             showSettingsWindow(nil)
         }
         
-        switcher.activate()
+        if isClientMode {
+            startSyncClient()
+        } else {
+            switcher.activate()
+            startSyncHost()
+        }
         
-        statusItemController = StatusItemController(settings: settings, reader: switcher.reader) { [weak self] in
+        statusItemController = StatusItemController(
+            settings: settings,
+            source: isClientMode ? .client(syncClient) : .ambientLight(switcher.reader)
+        ) { [weak self] in
             self?.showSettingsWindow(nil)
         }
         
@@ -52,6 +64,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private var statusItemController: StatusItemController?
+    
+    // MARK: - Virtual machines
+    
+    private var isClientMode = false
+    
+    private let syncClient = DMBAppearanceSyncClient()
+    
+    private var syncHost: DMBAppearanceSyncHost?
+    
+    private var syncCancellables = Set<AnyCancellable>()
+    
+    /// Shares the theme while enabled, restarting whenever the token changes.
+    private func startSyncHost() {
+        settings.$isVMSharingEnabled
+            .combineLatest(settings.$vmSharingToken.debounce(for: .seconds(1), scheduler: DispatchQueue.main))
+            .removeDuplicates { $0 == $1 }
+            .sink { [weak self] isEnabled, token in
+                self?.syncHost?.stop()
+                self?.syncHost = nil
+                
+                guard isEnabled else { return }
+                
+                let host = DMBAppearanceSyncHost(token: token)
+                host.start()
+                self?.syncHost = host
+            }
+            .store(in: &syncCancellables)
+    }
+    
+    /// Follows the host, reconnecting whenever its address or the token changes.
+    private func startSyncClient() {
+        settings.$vmClientHostAddress
+            .combineLatest(settings.$vmSharingToken)
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
+            .removeDuplicates { $0 == $1 }
+            .sink { [weak self] address, token in
+                self?.syncClient.start(hostAddress: address, token: token)
+            }
+            .store(in: &syncCancellables)
+    }
     
     private lazy var sensorReader = DMBAmbientLightSensorReader(frequency: .realtime)
 
@@ -66,7 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 385, height: 580),
+            contentRect: NSRect(x: 0, y: 0, width: 385, height: 700),
             styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
             backing: .buffered, defer: false)
         window.center()
@@ -77,11 +129,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.delegate = self
         window.isReleasedWhenClosed = false
         
-        let view = SettingsView()
-            .environmentObject(sensorReader)
-            .environmentObject(settings)
-        
-        window.contentView = NSHostingView(rootView: view)
+        if isClientMode {
+            let view = ClientSettingsView()
+                .environmentObject(syncClient)
+                .environmentObject(settings)
+            
+            window.contentView = NSHostingView(rootView: view)
+            window.setContentSize(NSSize(width: 385, height: 330))
+        } else {
+            let view = SettingsView()
+                .environmentObject(sensorReader)
+                .environmentObject(settings)
+            
+            window.contentView = NSHostingView(rootView: view)
+            // The autosaved frame may predate the virtual machine controls.
+            window.setContentSize(NSSize(width: 385, height: 700))
+        }
         
         window.makeKeyAndOrderFront(nil)
         window.center()
@@ -91,7 +154,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @IBAction func terminate(_ sender: Any?) {
         // No need to confirm on quit if the user's Mac is not supported.
-        shouldSkipTerminationConfirmation = !sensorReader.isSensorReady
+        // Nor in client mode, where quitting only stops following the host.
+        shouldSkipTerminationConfirmation = isClientMode || !sensorReader.isSensorReady
         
         NSApp.terminate(sender)
     }
@@ -149,8 +213,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ notification: Notification) {
+        syncHost?.stop()
+        
+        if isClientMode {
+            syncClient.stop()
+            syncClient.restoreAutomaticSwitching()
+        }
+        
         // Don't leave the system stuck on the clamshell theme with macOS' automatic switching off.
-        switcher.endClamshellOverride()
+        if !isClientMode {
+            switcher.endClamshellOverride()
+        }
     }
     
     @objc func receivedShutdownNotification(_ note: Notification) {

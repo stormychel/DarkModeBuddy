@@ -18,6 +18,7 @@
 		F479412925E5EA85001BB982 /* DarkModeBuddyCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F479412125E5EA85001BB982 /* DarkModeBuddyCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F479413225E5EA9F001BB982 /* DMBSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F479413125E5EA9F001BB982 /* DMBSettings.swift */; };
 		F479413B25E5EB63001BB982 /* BezelServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F479413A25E5EB63001BB982 /* BezelServices.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		A7C0DE0129B0000000000001 /* DMBAppearanceSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C0DE0129B0000000000002 /* DMBAppearanceSync.swift */; };
 		F479413D25E5EBAE001BB982 /* DMBSystemAppearanceSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F479413C25E5EBAE001BB982 /* DMBSystemAppearanceSwitcher.swift */; };
 		F479414025E5EBE7001BB982 /* DMBAmbientLightSensorReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F479413F25E5EBE7001BB982 /* DMBAmbientLightSensorReader.swift */; };
 		F479414225E5F5C2001BB982 /* SkyLight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F479414125E5F5C2001BB982 /* SkyLight.framework */; };
@@ -71,6 +72,7 @@
 		F479412425E5EA85001BB982 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F479413125E5EA9F001BB982 /* DMBSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMBSettings.swift; sourceTree = "<group>"; };
 		F479413A25E5EB63001BB982 /* BezelServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BezelServices.framework; path = ../../../../../System/Library/PrivateFrameworks/BezelServices.framework; sourceTree = "<group>"; };
+		A7C0DE0129B0000000000002 /* DMBAppearanceSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMBAppearanceSync.swift; sourceTree = "<group>"; };
 		F479413C25E5EBAE001BB982 /* DMBSystemAppearanceSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMBSystemAppearanceSwitcher.swift; sourceTree = "<group>"; };
 		F479413F25E5EBE7001BB982 /* DMBAmbientLightSensorReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMBAmbientLightSensorReader.swift; sourceTree = "<group>"; };
 		F479414125E5F5C2001BB982 /* SkyLight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SkyLight.framework; path = ../../../../../System/Library/PrivateFrameworks/SkyLight.framework; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 			isa = PBXGroup;
 			children = (
 				F479413C25E5EBAE001BB982 /* DMBSystemAppearanceSwitcher.swift */,
+				A7C0DE0129B0000000000002 /* DMBAppearanceSync.swift */,
 			);
 			path = System;
 			sourceTree = "<group>";
@@ -395,6 +398,7 @@
 				F479416825E6C408001BB982 /* SharedFileList.m in Sources */,
 				F479413225E5EA9F001BB982 /* DMBSettings.swift in Sources */,
 				F479413D25E5EBAE001BB982 /* DMBSystemAppearanceSwitcher.swift in Sources */,
+				A7C0DE0129B0000000000001 /* DMBAppearanceSync.swift in Sources */,
 				F479416D25E6D24C001BB982 /* DMBAmbientLightSensor.m in Sources */,
 				F4EEE7B625E7D58E005E840B /* ClamshellStateChecker.swift in Sources */,
 			);
@@ -621,9 +625,9 @@
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
+				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"-F$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
 				);
 			};
 			name = Debug;
@@ -651,9 +655,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
+				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"-F$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
 				);
 			};
 			name = Release;

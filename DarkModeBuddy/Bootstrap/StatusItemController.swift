@@ -13,16 +13,22 @@ import Sparkle
 /// The menu bar icon, with quick access to the main settings.
 final class StatusItemController: NSObject, NSMenuDelegate {
 
+    /// What drives the theme: the ambient light sensor, or a host when running as a VM client.
+    enum Source {
+        case ambientLight(DMBAmbientLightSensorReader)
+        case client(DMBAppearanceSyncClient)
+    }
+
     private let settings: DMBSettings
-    private let reader: DMBAmbientLightSensorReader
+    private let source: Source
     private let showSettings: () -> Void
 
     private var statusItem: NSStatusItem?
     private var cancellables = Set<AnyCancellable>()
 
-    init(settings: DMBSettings, reader: DMBAmbientLightSensorReader, showSettings: @escaping () -> Void) {
+    init(settings: DMBSettings, source: Source, showSettings: @escaping () -> Void) {
         self.settings = settings
-        self.reader = reader
+        self.source = source
         self.showSettings = showSettings
 
         super.init()
@@ -59,6 +65,29 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
+        switch source {
+        case .ambientLight(let reader):
+            addAmbientLightItems(to: menu, reader: reader)
+        case .client(let client):
+            let statusItem = NSMenuItem(title: client.status, action: nil, keyEquivalent: "")
+            statusItem.isEnabled = false
+            menu.addItem(statusItem)
+        }
+
+        menu.addItem(.separator())
+
+        menu.addItem(item("Settings…", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(item("Check for Updates…", action: #selector(checkForUpdates)))
+
+        menu.addItem(.separator())
+
+        // Same path as the app menu's Quit, which skips the confirmation on unsupported Macs.
+        let quitItem = NSMenuItem(title: "Quit DarkModeBuddy", action: #selector(AppDelegate.terminate(_:)), keyEquivalent: "q")
+        quitItem.target = NSApp.delegate
+        menu.addItem(quitItem)
+    }
+
+    private func addAmbientLightItems(to menu: NSMenu, reader: DMBAmbientLightSensorReader) {
         // The reader reports -1 until it has a reading.
         let lightValue = reader.ambientLightValue < 0 ? "—" : reader.ambientLightValue.formattedNoFractionDigits
         let lightItem = NSMenuItem(title: "Ambient Light: \(lightValue)", action: nil, keyEquivalent: "")
@@ -81,18 +110,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let clamshellItem = NSMenuItem(title: "With Lid Closed", action: nil, keyEquivalent: "")
         clamshellItem.submenu = clamshellMenu
         menu.addItem(clamshellItem)
-
-        menu.addItem(.separator())
-
-        menu.addItem(item("Settings…", action: #selector(openSettings), keyEquivalent: ","))
-        menu.addItem(item("Check for Updates…", action: #selector(checkForUpdates)))
-
-        menu.addItem(.separator())
-
-        // Same path as the app menu's Quit, which skips the confirmation on unsupported Macs.
-        let quitItem = NSMenuItem(title: "Quit DarkModeBuddy", action: #selector(AppDelegate.terminate(_:)), keyEquivalent: "q")
-        quitItem.target = NSApp.delegate
-        menu.addItem(quitItem)
     }
 
     private func item(_ title: String, action: Selector, keyEquivalent: String = "") -> NSMenuItem {
