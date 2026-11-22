@@ -215,6 +215,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         syncHost?.stop()
         
+        if isClientMode {
+            syncClient.stop()
+            syncClient.restoreAutomaticSwitching()
+        }
+        
         // Don't leave the system stuck on the clamshell theme with macOS' automatic switching off.
         if !isClientMode {
             switcher.endClamshellOverride()

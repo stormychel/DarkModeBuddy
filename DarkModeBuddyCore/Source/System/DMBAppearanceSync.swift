@@ -325,6 +325,9 @@ public final class DMBAppearanceSyncClient: ObservableObject {
     private var retryWorkItem: DispatchWorkItem?
     private var wakeObserver: NSObjectProtocol?
 
+    /// Set when we turned macOS' Auto appearance off, so it can be turned back on when we quit.
+    private var didDisableAutomaticSwitching = false
+
     public init() { }
 
     deinit {
@@ -363,6 +366,14 @@ public final class DMBAppearanceSyncClient: ObservableObject {
         status = "Not Connected"
     }
 
+    /// Turns macOS' Auto appearance back on if following the host turned it off.
+    public func restoreAutomaticSwitching() {
+        guard didDisableAutomaticSwitching else { return }
+        didDisableAutomaticSwitching = false
+
+        SLSSetAppearanceThemeSwitchesAutomatically(true)
+    }
+
     private func tearDown() {
         browser?.cancel()
         browser = nil
@@ -398,11 +409,19 @@ public final class DMBAppearanceSyncClient: ObservableObject {
         var host = hostAddress
         var port = DMBAppearanceSyncProtocol.defaultPort
 
-        // "host:port", but leave bare IPv6 addresses alone.
-        let parts = hostAddress.split(separator: ":")
-        if parts.count == 2, let parsedPort = UInt16(parts[1]) {
-            host = String(parts[0])
-            port = parsedPort
+        // "host:port" or "[ipv6]:port"; a bare IPv6 address has more than one colon and no port.
+        if hostAddress.hasPrefix("["), let close = hostAddress.firstIndex(of: "]") {
+            host = String(hostAddress[hostAddress.index(after: hostAddress.startIndex)..<close])
+            let rest = hostAddress[hostAddress.index(after: close)...]
+            if rest.hasPrefix(":"), let parsedPort = UInt16(rest.dropFirst()) {
+                port = parsedPort
+            }
+        } else {
+            let parts = hostAddress.split(separator: ":")
+            if parts.count == 2, let parsedPort = UInt16(parts[1]) {
+                host = String(parts[0])
+                port = parsedPort
+            }
         }
 
         return .hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
@@ -507,6 +526,7 @@ public final class DMBAppearanceSyncClient: ObservableObject {
         // macOS' own Auto appearance would undo what the host asks for.
         if SLSGetAppearanceThemeSwitchesAutomatically() {
             SLSSetAppearanceThemeSwitchesAutomatically(false)
+            didDisableAutomaticSwitching = true
         }
 
         guard appearance != .current else { return }
