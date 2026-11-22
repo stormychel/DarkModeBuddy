@@ -40,7 +40,11 @@ struct SettingsView: View {
             if reader.isSensorReady {
                 settingsControls
             } else {
-                UnsupportedMacView()
+                VStack(spacing: 20) {
+                    UnsupportedMacView()
+                    // So a VM forced into normal mode can be switched back to client mode.
+                    VMModePicker()
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -156,11 +160,114 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle(
+                    "Share Theme with Virtual Machines",
+                    isOn: $settings.isVMSharingEnabled
+                )
+                
+                if settings.isVMSharingEnabled {
+                    TextField("Pairing Token (Optional)", text: $settings.vmSharingToken)
+                        .frame(maxWidth: 220)
+                }
+                
+                VMModePicker()
+            }
+            
             Text(settings.currentSettingsDescription)
                 .font(.system(size: 11))
                 .foregroundColor(Color(NSColor.tertiaryLabelColor))
 //                .multilineTextAlignment(.center)
                 .lineLimit(nil)
+        }
+    }
+}
+
+/// Picks between normal and VM client mode, which takes effect on the next launch.
+struct VMModePicker: View {
+    @EnvironmentObject var settings: DMBSettings
+    
+    @State private var launchMode: DMBSettings.VMMode?
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Mode:")
+                
+                Picker("Mode:", selection: $settings.vmMode) {
+                    ForEach(DMBSettings.VMMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .frame(maxWidth: 200)
+            }
+            
+            if let launchMode = launchMode, launchMode != settings.vmMode {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Takes effect after relaunching.")
+                    Button("Relaunch", action: relaunch)
+                }
+                .font(.system(size: 11))
+                .foregroundColor(Color(NSColor.secondaryLabelColor))
+            }
+        }
+        .onAppear { launchMode = launchMode ?? settings.vmMode }
+    }
+    
+    private func relaunch() {
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        
+        // Settings are written in didSet, so the new instance reads the new mode.
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, error in
+            guard error == nil else { return }
+            DispatchQueue.main.async { exit(0) }
+        }
+    }
+}
+
+/// Settings for client mode: where the host is and whether we're connected to it.
+struct ClientSettingsView: View {
+    @EnvironmentObject var client: DMBAppearanceSyncClient
+    @EnvironmentObject var settings: DMBSettings
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Following the theme of DarkModeBuddy on the host Mac.")
+                .fixedSize(horizontal: false, vertical: true)
+            
+            Toggle("Launch at Login", isOn: $settings.isLaunchAtLoginEnabled)
+            
+            Toggle("Show in Menu Bar", isOn: $settings.isMenuBarIconEnabled)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                TextField("Host Address (Empty: Find Automatically)", text: $settings.vmClientHostAddress)
+                TextField("Pairing Token (Optional)", text: $settings.vmSharingToken)
+                
+                Text(client.status)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(NSColor.secondaryLabelColor))
+            }
+            
+            VMModePicker()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding([.top, .bottom])
+        .padding([.leading, .trailing], 22)
+        .padding(.top, 12)
+    }
+}
+
+extension DMBSettings.VMMode {
+    var title: String {
+        switch self {
+        case .automatic:
+            return DMBVirtualMachine.isRunningInVirtualMachine ? "Automatic (VM Client)" : "Automatic (Normal)"
+        case .normal:
+            return "Normal"
+        case .client:
+            return "VM Client"
         }
     }
 }

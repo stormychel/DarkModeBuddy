@@ -20,6 +20,16 @@ public final class DMBSettings: ObservableObject {
         public var id: Int { rawValue }
     }
     
+    /// Whether the app runs normally or follows a host as a VM client.
+    public enum VMMode: Int, CaseIterable, Identifiable {
+        /// Client mode inside a virtual machine, normal mode everywhere else.
+        case automatic
+        case normal
+        case client
+        
+        public var id: Int { rawValue }
+    }
+    
     /// What the system looked like before clamshell mode forced an appearance, so it can be restored.
     struct ClamshellRestoreState {
         let appearance: Int32
@@ -39,6 +49,10 @@ public final class DMBSettings: ObservableObject {
         static let clamshellRestoreAppearance = "clamshellRestoreAppearance"
         static let clamshellRestoreSwitchesAutomatically = "clamshellRestoreSwitchesAutomatically"
         static let isMenuBarIconEnabled = "isMenuBarIconEnabled"
+        static let vmMode = "vmMode"
+        static let isVMSharingEnabled = "isVMSharingEnabled"
+        static let vmSharingToken = "vmSharingToken"
+        static let vmClientHostAddress = "vmClientHostAddress"
         
         static let defaultDarknessThreshold: Double = {
             DMBAmbientLightSensor.hardwareUsesLegacySensor() ? 20.0 : 52.0
@@ -72,7 +86,9 @@ public final class DMBSettings: ObservableObject {
             Keys.enableImmediateChangeOnComputerWake: true,
             Keys.extraThresholdBeforeRevertingToLightMode: Keys.defaultExtraThresholdBeforeRevertingToLightMode,
             Keys.clamshellAppearance: ClamshellAppearance.unchanged.rawValue,
-            Keys.isMenuBarIconEnabled: true
+            Keys.isMenuBarIconEnabled: true,
+            Keys.vmMode: VMMode.automatic.rawValue,
+            Keys.isVMSharingEnabled: false
         ])
         
         self.isChangeSystemAppearanceBasedOnAmbientLightEnabled = defaults.bool(forKey: Keys.isChangeSystemAppearanceBasedOnAmbientLightEnabled)
@@ -83,6 +99,10 @@ public final class DMBSettings: ObservableObject {
         self.extraThresholdBeforeRevertingToLightMode = defaults.optionalDoubleValue(forKey: Keys.extraThresholdBeforeRevertingToLightMode) ?? Keys.defaultExtraThresholdBeforeRevertingToLightMode
         self.clamshellAppearance = ClamshellAppearance(rawValue: defaults.integer(forKey: Keys.clamshellAppearance)) ?? .unchanged
         self.isMenuBarIconEnabled = defaults.bool(forKey: Keys.isMenuBarIconEnabled)
+        self.vmMode = VMMode(rawValue: defaults.integer(forKey: Keys.vmMode)) ?? .automatic
+        self.isVMSharingEnabled = defaults.bool(forKey: Keys.isVMSharingEnabled)
+        self.vmSharingToken = defaults.string(forKey: Keys.vmSharingToken) ?? ""
+        self.vmClientHostAddress = defaults.string(forKey: Keys.vmClientHostAddress) ?? ""
         
         if isPreviewing {
             self.isLaunchAtLoginEnabled = false
@@ -205,6 +225,48 @@ public final class DMBSettings: ObservableObject {
                 isMenuBarIconEnabled,
                 forKey: Keys.isMenuBarIconEnabled
             )
+        }
+    }
+    
+    // MARK: - Virtual machines
+    
+    /// Takes effect on the next launch.
+    @Published public var vmMode: VMMode {
+        didSet {
+            defaults.set(vmMode.rawValue, forKey: Keys.vmMode)
+        }
+    }
+    
+    /// Whether `vmMode` resolves to client mode on this Mac.
+    public var isVMClientModeSelected: Bool {
+        switch vmMode {
+        case .automatic:
+            return DMBVirtualMachine.isRunningInVirtualMachine
+        case .normal:
+            return false
+        case .client:
+            return true
+        }
+    }
+    
+    /// Whether the host shares its appearance with VMs running in client mode.
+    @Published public var isVMSharingEnabled: Bool {
+        didSet {
+            defaults.set(isVMSharingEnabled, forKey: Keys.isVMSharingEnabled)
+        }
+    }
+    
+    /// Shared secret clients must send before the host gives them updates. Empty means none.
+    @Published public var vmSharingToken: String {
+        didSet {
+            defaults.set(vmSharingToken, forKey: Keys.vmSharingToken)
+        }
+    }
+    
+    /// The host a client connects to, as "host" or "host:port". Empty means find one with Bonjour.
+    @Published public var vmClientHostAddress: String {
+        didSet {
+            defaults.set(vmClientHostAddress, forKey: Keys.vmClientHostAddress)
         }
     }
     
